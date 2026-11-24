@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TRUST CIRCLE SAVINGS</title>
+<style>
+body{margin:0;font-family:Arial;background:#0F0F0F;color:white}
+.top{background:linear-gradient(90deg,#00C853,#FFD700);color:black;padding:20px;text-align:center}
+.box{background:#222;margin:12px;padding:15px;border-radius:15px;border:1px solid #00C853}
+.box h3{margin:0 0 10px;color:#FFD700}
+input,select{width:100%;padding:12px;margin:6px 0;border-radius:10px;border:1px solid #00C853;background:#111;color:white;box-sizing:border-box}
+button{width:100%;padding:13px;border:none;border-radius:10px;font-weight:bold;cursor:pointer;margin-top:6px}
+.btn-green{background:#00C853;color:white}.btn-gold{background:#FFD700;color:black}.btn-red{background:#FF2E63;color:white}
+.member{background:#111;padding:12px;border-radius:12px;margin:8px 0;border-left:4px solid #00C853}
+.small{font-size:12px;color:#aaa}.hidden{display:none}
+.total{background:#00C853;color:white;text-align:center;padding:16px;border-radius:15px;margin:12px;font-weight:bold}
+.total2{background:#FFD700;color:black;text-align:center;padding:12px;border-radius:15px;margin:12px;font-weight:bold}
+.trust{background:#111;border:1px solid #FFD700;padding:10px;border-radius:10px;margin:8px 0;font-size:13px}
+</style>
+</head>
+<body>
+<div class="top"><h1>💰 TRUST CIRCLE SAVINGS 💰</h1><p>TRUSTED • TRANSPARENT • SECURE ✅</p><p>Everyone Can See Everything - No Cheating!</p></div>
+<div id="loginBox" class="box">
+<h3>🔐 LOGIN / REGISTER</h3>
+<p class="small">ADMIN: admin / admin123<br>MEMBER: Register here</p>
+<input id="loginName" placeholder="Your Name">
+<input id="loginPass" type="password" placeholder="Password">
+<button class="btn-green" onclick="login()">LOGIN ✅</button>
+<button class="btn-gold" onclick="jisajili()">REGISTER ➕</button>
+</div>
+<div id="memberBox" class="hidden">
+<div class="total" id="memberPesa"></div>
+<div class="total2" id="chamaStatus"></div>
+<div class="box"><h3>📱 DEPOSIT - M-PESA</h3>
+<input id="depositAmt" type="number" placeholder="Amount - Ksh">
+<input id="depositCode" placeholder="M-Pesa Code - e.g. QK123ABC">
+<button class="btn-green" onclick="deposit()">DEPOSIT 💰</button></div>
+<div class="box"><h3>💸 SEND TO CIRCLE</h3>
+<input id="tumaAmt" type="number" placeholder="Amount to send to Circle">
+<button class="btn-gold" onclick="tumaChama()">SEND TO CIRCLE ➡️</button></div>
+<div class="box"><h3>👀 PUBLIC HISTORY - EVERYONE SEES</h3><div id="publicLog"></div></div>
+<button class="btn-red" onclick="logout()">LOGOUT</button></div>
+<div id="adminBox" class="hidden">
+<div class="total" id="adminTotal"></div>
+<div class="total2" id="adminStatus"></div>
+<div class="box"><h3>👑 ADMIN - SET PAYOUT DAY</h3>
+<input id="sikuGawana" type="date">
+<input id="kiasiGawana" type="number" placeholder="How much will each person get?">
+<button class="btn-gold" onclick="wekaSiku()">SET DATE 📅</button></div>
+<div class="box"><h3>🏧 ADMIN ONLY - WITHDRAW</h3>
+<p class="small" id="withdrawInfo"></p>
+<button class="btn-red" onclick="adminWithdraw()">ADMIN WITHDRAW 🏧</button></div>
+<div class="box"><h3>🎉 ADMIN - SHARE TO ALL</h3>
+<button class="btn-green" onclick="gawana()">SHARE TO ALL 🎉</button></div>
+<div class="box"><h3>👥 MEMBERS</h3><div id="adminMembers"></div></div>
+<div class="box"><h3>📜 FULL HISTORY</h3><div id="adminLog"></div></div>
+<button class="btn-red" onclick="logout()">LOGOUT</button></div>
+<script>
+let users=JSON.parse(localStorage.getItem('chama_users')||'[]');
+let chamaPesa=parseInt(localStorage.getItem('chama_pesa')||'0');
+let chamaSiku=localStorage.getItem('chama_siku')||'';
+let chamaKiasi=localStorage.getItem('chama_kiasi')||'';
+let logs=JSON.parse(localStorage.getItem('chama_logs')||'[]');
+let current=null; let adminWithdrawn=localStorage.getItem('admin_withdrawn')==='1';
+function save(){localStorage.setItem('chama_users',JSON.stringify(users));localStorage.setItem('chama_pesa',chamaPesa);localStorage.setItem('chama_siku',chamaSiku);localStorage.setItem('chama_kiasi',chamaKiasi);localStorage.setItem('chama_logs',JSON.stringify(logs));localStorage.setItem('admin_withdrawn',adminWithdrawn?'1':'0');}
+function addLog(m){logs.unshift(m+' - '+new Date().toLocaleString());if(logs.length>50)logs=logs.slice(0,50);save();}
+function logout(){current=null;document.getElementById('memberBox').classList.add('hidden');document.getElementById('adminBox').classList.add('hidden');document.getElementById('loginBox').classList.remove('hidden');}
+function jisajili(){let n=document.getElementById('loginName').value.trim();let p=document.getElementById('loginPass').value.trim();if(!n||!p){alert('Enter name and password!');return;}if(users.find(u=>u.name.toLowerCase()===n.toLowerCase())){alert('Name already taken!');return;}users.push({name:n,pass:p,balance:0,chama:0});addLog('✅ NEW MEMBER: '+n+' joined');save();alert('You joined! Now Login.');}
+function login(){let n=document.getElementById('loginName').value.trim();let p=document.getElementById('loginPass').value.trim();if(n.toLowerCase()==='admin'&&p==='admin123'){current={name:'ADMIN',role:'admin'};document.getElementById('loginBox').classList.add('hidden');document.getElementById('adminBox').classList.remove('hidden');updateAdmin();return;}let u=users.find(x=>x.name.toLowerCase()===n.toLowerCase()&&x.pass===p);if(u){current=u;document.getElementById('loginBox').classList.add('hidden');document.getElementById('memberBox').classList.remove('hidden');updateMember();}else alert('Wrong name or password!');}
+function deposit(){let amt=parseInt(document.getElementById('depositAmt').value);let code=document.getElementById('depositCode').value.trim();if(!amt||amt<=0){alert('Enter amount!');return;}if(!code){alert('Enter M-Pesa Code!');return;}current.balance+=amt;addLog('💰 DEPOSIT: '+current.name+' deposited Ksh '+amt+' - Code: '+code);save();updateMember();document.getElementById('depositAmt').value='';document.getElementById('depositCode').value='';alert('Deposit Ksh '+amt+' successful!');}
+function tumaChama(){let amt=parseInt(document.getElementById('tumaAmt').value);if(!amt||amt<=0){alert('Enter amount!');return;}if(current.balance<amt){alert('Not enough! You have Ksh '+current.balance+'. Deposit first!');return;}current.balance-=amt;current.chama+=amt;chamaPesa+=amt;addLog('➡️ CIRCLE: '+current.name+' sent Ksh '+amt+' to Circle. Circle: Ksh '+chamaPesa);save();updateMember();document.getElementById('tumaAmt').value='';alert('Ksh '+amt+' sent to Circle!');}
+function updateMember(){document.getElementById('memberPesa').innerHTML='💰 YOUR ACCOUNT: Ksh '+current.balance.toLocaleString()+'<br>You sent to Circle: Ksh '+current.chama.toLocaleString();document.getElementById('chamaStatus').innerHTML='📅 PAYOUT DAY: '+(chamaSiku||'Not set yet')+'<br>Each person: Ksh '+(chamaKiasi||'-');document.getElementById('publicLog').innerHTML=logs.length?logs.map(l=>'<div class="trust">'+l+'</div>').join(''):'<p class="small">No history yet.</p>';}
+function wekaSiku(){let d=document.getElementById('sikuGawana').value;let k=document.getElementById('kiasiGawana').value;if(!d||!k){alert('Enter date and amount!');return;}chamaSiku=d;chamaKiasi=k;adminWithdrawn=false;addLog('📅 ADMIN: Payout day is '+d+'. Each person Ksh '+k);save();updateAdmin();alert('Date set!');}
+function adminWithdraw(){if(chamaPesa<=0){alert('Circle has no money!');return;}if(adminWithdrawn){alert('Already withdrawn! Now Share!');return;}adminWithdrawn=true;addLog('🏧 ADMIN WITHDRAW: Admin withdrew Ksh '+chamaPesa);save();updateAdmin();alert('You withdrew Ksh '+chamaPesa+'! Now Share!');}
+function gawana(){if(!adminWithdrawn){alert('Withdraw first!');return;}let k=parseInt(chamaKiasi||'0');if(k<=0){alert('Enter amount!');return;}let need=users.length*k;if(chamaPesa<need){alert('Not enough! Circle: '+chamaPesa+', needs: '+need);return;}users.forEach(u=>{u.balance+=k;u.chama=0;});addLog('🎉 SHARE: Admin shared Ksh '+k+' to each member!');chamaPesa-=need;adminWithdrawn=false;save();updateAdmin();alert('SHARED! Each person Ksh '+k+'!');}
+function updateAdmin(){document.getElementById('adminTotal').innerHTML='💰 CIRCLE MONEY: Ksh '+chamaPesa.toLocaleString()+'<br>Members: '+users.length+' | Withdrawn: '+(adminWithdrawn?'YES - Share Now!':'Not yet');document.getElementById('adminStatus').innerHTML='📅 PAYOUT: '+(chamaSiku||'Not set')+' | Each: Ksh '+(chamaKiasi||'-');document.getElementById('withdrawInfo').innerHTML='Circle Money: <b>Ksh '+chamaPesa.toLocaleString()+'</b>. If you click Withdraw, everyone will see!';document.getElementById('adminMembers').innerHTML=users.length?users.map(u=>'<div class="member"><b>'+u.name+'</b><br>Balance: Ksh '+u.balance.toLocaleString()+'<br>Circle: Ksh '+u.chama.toLocaleString()+'</div>').join(''):'<p class="small">No members yet.</p>';document.getElementById('adminLog').innerHTML=logs.length?logs.map(l=>'<div class="trust">'+l+'</div>').join(''):'<p class="small">No history yet.</p>';}
+</script>
+</body>
+  </html>
